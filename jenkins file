@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(defaultValue: "none", description: 'Enter Target Server Name', name: 'server_name')
+        choice(choices: ['no', 'yes'], description: 'Deploy the code after build ?', name: 'deploy_code')
+    }
+
+    environment {
+      project_name ='job1'
+    }
+
+stages {
+        stage('Checkout'){
+            steps {
+                sh "echo checkout code"
+            }
+        }
+
+        stage('Build Code'){
+            steps {
+                sh "echo Project name is ${project_name}"
+                sh "echo Enter the Steps to Build the code"
+            }
+        }
+
+        stage('Trigerring downstream job - Deploy Code'){
+            when {
+                allOf {
+                    expression { params.deploy_code != 'no' }
+                }
+            }
+            steps {
+                build job: 'downstream-job', \
+                parameters: [string(name: 'server_name', value: String.valueOf(server_name))], \
+                propagate: false
+            }
+        }
+
+    }
